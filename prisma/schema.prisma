@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// prisma/schema.prisma
+datasource db {
+  provider  = "mysql"
+  url  	    = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String           @id @default(uuid())
+  fullname       String?
+  email          String           @unique
+  password       String
+  profilePicture String           @db.VarChar(1000)
+  role           Role             @default(USER)
+  status         Status           @default(PENDING)
+  socialNetworks SocialNetworks[]
+  contents       Content[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@map(name: "users")
+}
+
+// Relation one to one between social network and social network profile
+model SocialNetworks {
+  id            String                @id @default(uuid())
+  identifier    String
+  password      String                @db.VarChar(1000)
+  owner         User                  @relation(fields: [ownerId], references: [id])
+  ownerId       String
+  socialNetwork SocialNetwork
+  email         String
+  contents      Content[]
+  profile       SocialNetworkProfile?
+  lastActivity  DateTime?
+  isDeleted     Boolean               @default(false)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@map(name: "social_networks")
+}
+
+model SocialNetworkProfile {
+  id              String         @id @default(uuid())
+  fullname        String
+  avatarUrl       String         @db.VarChar(1000)
+  username        String
+  bio             String
+  socialNetwork   SocialNetworks @relation(fields: [socialNetworkId], references: [id])
+  socialNetworkId String         @unique
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map(name: "social_network_profiles")
+}
+
+model Content {
+  id              String         @id @default(uuid())
+  caption         String
+  multimediaUrl   String
+  url             String
+  uploadedAt      DateTime       @default(now())
+  type            ContentType
+  user            User           @relation(fields: [userId], references: [id])
+  userId          String
+  socialNetwork   SocialNetworks @relation(fields: [socialNetworkId], references: [id])
+  socialNetworkId String
+  scheduledAt     DateTime?
+
+  // create and update timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map(name: "contents")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  BLOCKED
+  INACTIVE
+}
+
+enum SocialNetwork {
+  Instagram
+  Facebook
+}
+
+enum ContentType {
+  Post
+  Story
+}
