@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "",
   "author": "",
+  "engines": {
+    "node": "20.10.0",
+    "npm": "10.2.3"
+  },
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
